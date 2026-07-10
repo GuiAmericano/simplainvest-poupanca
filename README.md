@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MetaPoupança
 
-## Getting Started
+Aplicação web para acompanhar metas financeiras — desafio técnico de processo seletivo.
 
-First, run the development server:
+## Funcionalidades planejadas
+
+- [x] Setup do projeto (Next.js + Tailwind + Supabase)
+- [ ] Cadastrar meta financeira (valor objetivo + data limite)
+- [ ] Calcular quanto poupar por mês automaticamente
+- [ ] Registrar movimentações (aportes)
+- [ ] Indicador visual de progresso
+- [ ] Gráfico de evolução
+- [ ] Múltiplas metas simultâneas
+- [ ] Alerta de atraso na meta
+- [ ] Deploy na Vercel
+
+## Stack
+
+- **Front-end:** Next.js 16, React 19, Tailwind CSS
+- **Back-end:** API Routes / Server Actions do Next.js
+- **Banco:** Supabase (PostgreSQL)
+- **Deploy:** Vercel
+
+## Como rodar localmente
+
+### 1. Instalar dependências
+
+```bash
+npm install
+```
+
+### 2. Configurar Supabase
+
+1. Crie um projeto em [supabase.com](https://supabase.com)
+2. Vá em **SQL Editor** e execute o arquivo `supabase/schema.sql`
+3. Copie `.env.local.example` para `.env.local`
+4. Preencha com URL e anon key do seu projeto (Settings > API)
+
+### 3. Rodar o servidor
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estrutura do projeto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/              # Páginas e rotas (App Router)
+├── lib/
+│   └── supabase/     # Clientes Supabase (browser e server)
+└── types/
+    └── database.ts   # Tipos TypeScript das tabelas
+supabase/
+└── schema.sql        # Schema do banco de dados
+```
 
-## Learn More
+## Cronograma de desenvolvimento
 
-To learn more about Next.js, take a look at the following resources:
+| Fase | Dia | Foco |
+|------|-----|------|
+| 1 | Dia 1 | Setup (este commit) |
+| 2 | Dia 2 | Backend — APIs e lógica de cálculo |
+| 3 | Dia 3-4 | Frontend — telas e componentes |
+| 4 | Dia 5-6 | Extras — gráficos, alertas, múltiplas metas |
+| 5 | Dia 7 | Deploy, README final, testes |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Issues no GitHub
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Crie um Project Board (Kanban) com as issues abaixo para demonstrar organização:
 
-## Deploy on Vercel
+**Fase 1 — Setup**
+- Criar projeto Next.js + Tailwind
+- Configurar Supabase e criar tabelas
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Fase 2 — Backend**
+- CRUD de metas
+- CRUD de movimentações
+- Lógica de cálculo (valor mensal, progresso)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Fase 3 — Frontend**
+- Tela de cadastro de meta
+- Listagem de metas
+- Barra de progresso
+- Modal de registrar aporte
+
+**Fase 4 — Extras**
+- Gráfico de evolução
+- Múltiplas metas
+- Alerta de atraso
+
+**Fase 5 — Finalização**
+- Deploy Vercel
+- README e testes finais
+
+## Licença
+
+Projeto desenvolvido para fins de avaliação técnica.
