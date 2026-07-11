@@ -1,8 +1,8 @@
 import {
   deleteMeta,
-  getMetaById,
   updateMeta,
 } from "@/lib/services/metas";
+import { getMetaComProgressoById } from "@/lib/services/meta-progresso";
 import { jsonData, jsonError } from "@/lib/utils/api-error";
 import { validateMetaUpdate } from "@/lib/validations/meta";
 
@@ -13,7 +13,7 @@ type RouteContext = {
 export async function GET(_request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const meta = await getMetaById(id);
+    const meta = await getMetaComProgressoById(id);
 
     if (!meta) {
       return jsonError("Meta não encontrada.", 404);
@@ -57,7 +57,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       return jsonError("Meta não encontrada.", 404);
     }
 
-    return jsonData(meta);
+    const metaComProgresso = await getMetaComProgressoById(id);
+    return jsonData(metaComProgresso);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Erro ao atualizar meta.";

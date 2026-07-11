@@ -1,6 +1,47 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { mapMovimentacao } from "@/lib/utils/parse";
+import { mapMovimentacao, parseNumber } from "@/lib/utils/parse";
 import type { Movimentacao } from "@/types/database";
+
+export async function getTotalAportadoByMeta(metaId: string): Promise<number> {
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase
+    .from("movimentacoes")
+    .select("valor")
+    .eq("meta_id", metaId);
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).reduce((sum, row) => sum + parseNumber(row.valor), 0);
+}
+
+export async function getTotaisAportadosPorMetas(
+  metaIds: string[]
+): Promise<Record<string, number>> {
+  if (metaIds.length === 0) return {};
+
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase
+    .from("movimentacoes")
+    .select("meta_id, valor")
+    .in("meta_id", metaIds);
+
+  if (error) throw new Error(error.message);
+
+  const totais: Record<string, number> = {};
+
+  for (const id of metaIds) {
+    totais[id] = 0;
+  }
+
+  for (const row of data ?? []) {
+    const metaId = String(row.meta_id);
+    totais[metaId] = (totais[metaId] ?? 0) + parseNumber(row.valor);
+  }
+
+  return totais;
+}
 
 export async function listMovimentacoesByMeta(
   metaId: string
