@@ -2,6 +2,10 @@
 
 Aplicação web para acompanhar metas financeiras — desafio técnico de processo seletivo.
 
+## Demo
+
+Aplicação disponível em: [https://simplainvest.vercel.app](https://simplainvest.vercel.app)
+
 ## Stack
 
 - **Front-end:** Next.js 16, React 19, Tailwind CSS
