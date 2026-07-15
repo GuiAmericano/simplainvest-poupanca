@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import {
   deleteMovimentacao,
   getMovimentacaoById,
@@ -35,6 +36,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
     if (!deleted) {
       return jsonError("Movimentação não encontrada.", 404);
     }
+
+    revalidatePath("/");
 
     return jsonData({ message: "Movimentação excluída com sucesso." });
   } catch (error) {

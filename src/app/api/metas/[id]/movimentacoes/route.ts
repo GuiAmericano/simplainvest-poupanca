@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import {
   createMovimentacao,
   listMovimentacoesByMeta,
@@ -66,6 +67,7 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const movimentacao = await createMovimentacao(validation.data);
+    revalidatePath("/");
     return jsonData(movimentacao, 201);
   } catch (error) {
     const message =

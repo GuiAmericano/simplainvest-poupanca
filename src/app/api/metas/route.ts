@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { createMeta } from "@/lib/services/metas";
 import {
   getMetaComProgressoById,
@@ -28,6 +29,8 @@ export async function POST(request: Request) {
 
     const meta = await createMeta(validation.data);
     const metaComProgresso = await getMetaComProgressoById(meta.id);
+
+    revalidatePath("/");
 
     return jsonData(metaComProgresso, 201);
   } catch (error) {

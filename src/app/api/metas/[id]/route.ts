@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import {
   deleteMeta,
   updateMeta,
@@ -78,6 +79,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
     if (!deleted) {
       return jsonError("Meta não encontrada.", 404);
     }
+
+    revalidatePath("/");
 
     return jsonData({ message: "Meta excluída com sucesso." });
   } catch (error) {
