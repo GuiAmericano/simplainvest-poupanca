@@ -8,9 +8,11 @@ Aplicação disponível em: [https://simplainvest.vercel.app](https://simplainve
 
 ## Stack
 
-- **Front-end:** Next.js 16, React 19, Tailwind CSS
-- **Back-end:** API Routes / Server Actions do Next.js
+- **Front-end:** Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- **Back-end:** API Routes do Next.js
 - **Banco:** Supabase (PostgreSQL)
+- **Gráficos:** Recharts
+- **Testes:** Vitest
 - **Deploy:** Vercel
 
 ## Como rodar localmente
