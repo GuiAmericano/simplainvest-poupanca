@@ -1,5 +1,6 @@
 "use client";
 
+import { btnEmeraldClass } from "@/lib/button-styles";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
@@ -7,6 +8,7 @@ type FormErrors = {
   nome?: string;
   valor_objetivo?: string;
   data_limite?: string;
+  taxa_rendimento_anual?: string;
   geral?: string;
 };
 
@@ -14,6 +16,7 @@ function validateForm(data: {
   nome: string;
   valor_objetivo: string;
   data_limite: string;
+  taxa_rendimento_anual: string;
 }): FormErrors {
   const errors: FormErrors = {};
 
@@ -33,14 +36,30 @@ function validateForm(data: {
     errors.data_limite = "Data inválida.";
   }
 
+  const taxa =
+    data.taxa_rendimento_anual.trim() === ""
+      ? 0
+      : Number(data.taxa_rendimento_anual);
+
+  if (
+    data.taxa_rendimento_anual.trim() !== "" &&
+    (!Number.isFinite(taxa) || taxa < 0 || taxa > 100)
+  ) {
+    errors.taxa_rendimento_anual = "Informe uma taxa entre 0% e 100%.";
+  }
+
   return errors;
 }
+
+const inputClassName =
+  "mt-1 w-full border border-border-strong bg-surface px-3 py-2 text-sm text-foreground outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-500/30";
 
 export function MetaForm() {
   const router = useRouter();
   const [nome, setNome] = useState("");
   const [valorObjetivo, setValorObjetivo] = useState("");
   const [dataLimite, setDataLimite] = useState("");
+  const [taxaRendimento, setTaxaRendimento] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,6 +70,7 @@ export function MetaForm() {
       nome,
       valor_objetivo: valorObjetivo,
       data_limite: dataLimite,
+      taxa_rendimento_anual: taxaRendimento,
     });
 
     if (Object.keys(validationErrors).length > 0) {
@@ -69,6 +89,8 @@ export function MetaForm() {
           nome: nome.trim(),
           valor_objetivo: Number(valorObjetivo),
           data_limite: dataLimite,
+          taxa_rendimento_anual:
+            taxaRendimento.trim() === "" ? 0 : Number(taxaRendimento),
         }),
       });
 
@@ -82,6 +104,7 @@ export function MetaForm() {
       setNome("");
       setValorObjetivo("");
       setDataLimite("");
+      setTaxaRendimento("");
       router.refresh();
     } catch {
       setErrors({ geral: "Não foi possível conectar ao servidor." });
@@ -93,16 +116,17 @@ export function MetaForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
+      className="border border-border bg-surface p-6"
     >
-      <h2 className="text-lg font-semibold text-zinc-900">Nova meta</h2>
-      <p className="mt-1 text-sm text-zinc-500">
-        Defina o objetivo e o prazo para calcular quanto poupar por mês.
+      <h2 className="text-lg font-semibold text-foreground">Nova meta</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Defina o objetivo, prazo e taxa de rendimento. A parcela mensal será
+        calculada com juros compostos.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label htmlFor="nome" className="text-sm font-medium text-zinc-700">
+          <label htmlFor="nome" className="text-sm font-medium text-foreground">
             Nome da meta
           </label>
           <input
@@ -111,17 +135,19 @@ export function MetaForm() {
             value={nome}
             onChange={(event) => setNome(event.target.value)}
             placeholder="Ex.: Viagem, carro, reserva de emergência"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className={inputClassName}
           />
           {errors.nome && (
-            <p className="mt-1 text-sm text-red-600">{errors.nome}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.nome}
+            </p>
           )}
         </div>
 
         <div>
           <label
             htmlFor="valor_objetivo"
-            className="text-sm font-medium text-zinc-700"
+            className="text-sm font-medium text-foreground"
           >
             Valor objetivo (R$)
           </label>
@@ -133,17 +159,19 @@ export function MetaForm() {
             value={valorObjetivo}
             onChange={(event) => setValorObjetivo(event.target.value)}
             placeholder="15000"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className={inputClassName}
           />
           {errors.valor_objetivo && (
-            <p className="mt-1 text-sm text-red-600">{errors.valor_objetivo}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.valor_objetivo}
+            </p>
           )}
         </div>
 
         <div>
           <label
             htmlFor="data_limite"
-            className="text-sm font-medium text-zinc-700"
+            className="text-sm font-medium text-foreground"
           >
             Data limite
           </label>
@@ -152,22 +180,51 @@ export function MetaForm() {
             type="date"
             value={dataLimite}
             onChange={(event) => setDataLimite(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className={inputClassName}
           />
           {errors.data_limite && (
-            <p className="mt-1 text-sm text-red-600">{errors.data_limite}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.data_limite}
+            </p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="taxa_rendimento_anual"
+            className="text-sm font-medium text-foreground"
+          >
+            Taxa de rendimento anual (%)
+          </label>
+          <input
+            id="taxa_rendimento_anual"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            value={taxaRendimento}
+            onChange={(event) => setTaxaRendimento(event.target.value)}
+            placeholder="10"
+            className={inputClassName}
+          />
+          {errors.taxa_rendimento_anual && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.taxa_rendimento_anual}
+            </p>
           )}
         </div>
       </div>
 
       {errors.geral && (
-        <p className="mt-4 text-sm text-red-600">{errors.geral}</p>
+        <p className="mt-4 text-sm text-red-600 dark:text-red-400">
+          {errors.geral}
+        </p>
       )}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`mt-6 ${btnEmeraldClass}`}
       >
         {isSubmitting ? "Salvando..." : "Criar meta"}
       </button>

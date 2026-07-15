@@ -1,18 +1,15 @@
 import { calcularProgresso } from "@/lib/calculations/meta-progresso";
 import { getMetaById, listMetas } from "@/lib/services/metas";
-import {
-  getTotalAportadoByMeta,
-  getTotaisAportadosPorMetas,
-} from "@/lib/services/movimentacoes";
-import type { MetaComProgresso } from "@/types/database";
+import { listMovimentacoesByMetaIds } from "@/lib/services/movimentacoes";
+import type { MetaComProgresso, Movimentacao } from "@/types/database";
 
 export async function listMetasComProgresso(): Promise<MetaComProgresso[]> {
   const metas = await listMetas();
   const metaIds = metas.map((meta) => meta.id);
-  const totais = await getTotaisAportadosPorMetas(metaIds);
+  const movimentacoesPorMeta = await listMovimentacoesByMetaIds(metaIds);
 
   return metas.map((meta) =>
-    calcularProgresso(meta, totais[meta.id] ?? 0)
+    calcularProgresso(meta, movimentacoesPorMeta[meta.id] ?? [])
   );
 }
 
@@ -23,6 +20,14 @@ export async function getMetaComProgressoById(
 
   if (!meta) return null;
 
-  const totalAportado = await getTotalAportadoByMeta(id);
-  return calcularProgresso(meta, totalAportado);
+  const movimentacoesPorMeta = await listMovimentacoesByMetaIds([id]);
+  return calcularProgresso(meta, movimentacoesPorMeta[id] ?? []);
+}
+
+export function calcularProgressoComMovimentacoes(
+  meta: NonNullable<Awaited<ReturnType<typeof getMetaById>>>,
+  movimentacoes: Movimentacao[],
+  referencia?: Date
+) {
+  return calcularProgresso(meta, movimentacoes, referencia);
 }

@@ -7,14 +7,16 @@ create table if not exists public.metas (
   nome text not null,
   valor_objetivo numeric(12, 2) not null check (valor_objetivo > 0),
   data_limite date not null,
+  taxa_rendimento_anual numeric(6, 4) not null default 0 check (taxa_rendimento_anual >= 0),
   created_at timestamptz not null default now()
 );
 
--- Tabela de movimentações (aportes)
+-- Tabela de movimentações (aportes e retiradas)
 create table if not exists public.movimentacoes (
   id uuid primary key default gen_random_uuid(),
   meta_id uuid not null references public.metas(id) on delete cascade,
   valor numeric(12, 2) not null check (valor > 0),
+  tipo text not null default 'aporte' check (tipo in ('aporte', 'retirada')),
   descricao text,
   data date not null default current_date,
   created_at timestamptz not null default now()

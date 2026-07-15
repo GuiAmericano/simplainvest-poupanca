@@ -41,6 +41,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       nome: string;
       valor_objetivo: number;
       data_limite: string;
+      taxa_rendimento_anual: number;
     }> = {};
 
     if (body.nome !== undefined) updateData.nome = validation.data.nome;
@@ -49,6 +50,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (body.data_limite !== undefined) {
       updateData.data_limite = validation.data.data_limite;
+    }
+    if (body.taxa_rendimento_anual !== undefined) {
+      updateData.taxa_rendimento_anual = validation.data.taxa_rendimento_anual;
     }
 
     const meta = await updateMeta(id, updateData);
