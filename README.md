@@ -2,18 +2,6 @@
 
 Aplicação web para acompanhar metas financeiras — desafio técnico de processo seletivo.
 
-## Funcionalidades planejadas
-
-- [x] Setup do projeto (Next.js + Tailwind + Supabase)
-- [ ] Cadastrar meta financeira (valor objetivo + data limite)
-- [ ] Calcular quanto poupar por mês automaticamente
-- [ ] Registrar movimentações (aportes)
-- [ ] Indicador visual de progresso
-- [ ] Gráfico de evolução
-- [ ] Múltiplas metas simultâneas
-- [ ] Alerta de atraso na meta
-- [ ] Deploy na Vercel
-
 ## Stack
 
 - **Front-end:** Next.js 16, React 19, Tailwind CSS
@@ -87,14 +75,11 @@ Crie um Project Board (Kanban) com as issues abaixo para demonstrar organizaçã
 - Modal de registrar aporte
 
 **Fase 4 — Extras**
+- Rendimento
 - Gráfico de evolução
-- Múltiplas metas
-- Alerta de atraso
+- Alertas
+- Melhorias no frontend
 
 **Fase 5 — Finalização**
 - Deploy Vercel
 - README e testes finais
-
-## Licença
-
-Projeto desenvolvido para fins de avaliação técnica.

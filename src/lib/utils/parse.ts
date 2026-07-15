@@ -12,15 +12,19 @@ export function mapMeta(row: Record<string, unknown>): Meta {
     nome: String(row.nome),
     valor_objetivo: parseNumber(row.valor_objetivo),
     data_limite: String(row.data_limite),
+    taxa_rendimento_anual: parseNumber(row.taxa_rendimento_anual) || 0,
     created_at: String(row.created_at),
   };
 }
 
 export function mapMovimentacao(row: Record<string, unknown>): Movimentacao {
+  const tipo = row.tipo === "retirada" ? "retirada" : "aporte";
+
   return {
     id: String(row.id),
     meta_id: String(row.meta_id),
     valor: parseNumber(row.valor),
+    tipo,
     descricao: row.descricao ? String(row.descricao) : null,
     data: String(row.data),
     created_at: String(row.created_at),

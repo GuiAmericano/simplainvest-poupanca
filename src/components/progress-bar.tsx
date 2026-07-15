@@ -8,13 +8,13 @@ export function ProgressBar({ percentual, highlight = false }: ProgressBarProps)
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
+      <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Progresso</span>
-        <span className="font-medium text-zinc-700">{width.toFixed(0)}%</span>
+        <span className="font-medium text-foreground">{width.toFixed(0)}%</span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-zinc-100">
+      <div className="h-2 overflow-hidden border border-border bg-muted">
         <div
-          className={`h-full rounded-full bg-emerald-500 transition-all duration-700 ease-out ${
+          className={`h-full bg-emerald-500 transition-all duration-700 ease-out dark:bg-emerald-400 ${
             highlight ? "shadow-[0_0_12px_rgba(16,185,129,0.6)]" : ""
           }`}
           style={{ width: `${width}%` }}

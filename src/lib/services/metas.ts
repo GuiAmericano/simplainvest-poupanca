@@ -33,6 +33,7 @@ export async function createMeta(input: {
   nome: string;
   valor_objetivo: number;
   data_limite: string;
+  taxa_rendimento_anual: number;
 }): Promise<Meta> {
   const supabase = createServerClient();
 
@@ -53,6 +54,7 @@ export async function updateMeta(
     nome: string;
     valor_objetivo: number;
     data_limite: string;
+    taxa_rendimento_anual: number;
   }>
 ): Promise<Meta | null> {
   const supabase = createServerClient();

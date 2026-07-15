@@ -1,49 +1,148 @@
-import type { Meta, MetaComProgresso } from "@/types/database";
+import {
+  arredondarMoeda,
+  calcularAportadoNoPeriodo,
+  calcularParcelaPeriodo,
+  calcularSaldoComRendimento,
+  calcularTotaisMovimentacoes,
+  dataCriacaoMeta,
+  gerarPeriodosMeta,
+} from "@/lib/calculations/juros-compostos";
+import {
+  obterDataReferencia,
+  obterDataSaldoExibicao,
+} from "@/lib/calculations/data-referencia";
+import { encontrarPeriodoAtual, type Periodo } from "@/lib/calculations/periodos";
+import type { Meta, MetaComProgresso, Movimentacao } from "@/types/database";
 
-export function calcularMesesRestantes(
-  dataLimite: string,
-  referencia = new Date()
+const TOLERANCIA_META_ATINGIDA = 0.01;
+const TOLERANCIA_PARCELA = 0.01;
+
+function calcularFaltaNoPeriodo(
+  meta: Meta,
+  movimentacoes: Movimentacao[],
+  periodos: Periodo[],
+  periodo: Periodo,
+  limiteData: string
 ): number {
-  const limite = new Date(`${dataLimite}T12:00:00`);
-  const hoje = new Date(referencia);
-  hoje.setHours(12, 0, 0, 0);
+  const parcela = calcularParcelaPeriodo(meta, movimentacoes, periodos, periodo);
+  const aportado = calcularAportadoNoPeriodo(
+    movimentacoes,
+    periodo,
+    limiteData
+  );
 
-  if (limite < hoje) return 0;
-
-  const meses =
-    (limite.getFullYear() - hoje.getFullYear()) * 12 +
-    (limite.getMonth() - hoje.getMonth());
-
-  return Math.max(meses, 1);
+  return arredondarMoeda(Math.max(parcela - aportado, 0));
 }
 
 export function calcularProgresso(
   meta: Meta,
-  totalAportado: number,
+  movimentacoes: Movimentacao[],
   referencia = new Date()
 ): MetaComProgresso {
-  const total = Math.max(totalAportado, 0);
-  const valorRestante = Math.max(meta.valor_objetivo - total, 0);
+  const periodos = gerarPeriodosMeta(meta);
+  const dataReferencia = obterDataReferencia(movimentacoes, referencia);
+  const dataSaldo = obterDataSaldoExibicao(movimentacoes, referencia);
+  const periodoCalendario = encontrarPeriodoAtual(periodos, dataSaldo);
+
+  const { totalAportado, totalRetirado } = calcularTotaisMovimentacoes(movimentacoes);
+  const saldoAtual = calcularSaldoComRendimento(
+    movimentacoes,
+    meta.taxa_rendimento_anual,
+    periodos,
+    dataReferencia
+  );
+
+  const saldoLiquido = totalAportado - totalRetirado;
+  const rendimentoAcumulado = arredondarMoeda(saldoAtual - saldoLiquido);
+  const valorRestante = arredondarMoeda(Math.max(meta.valor_objetivo - saldoAtual, 0));
+
   const progressoPercentual =
     meta.valor_objetivo > 0
-      ? Math.min((total / meta.valor_objetivo) * 100, 100)
+      ? Math.min((saldoAtual / meta.valor_objetivo) * 100, 100)
       : 0;
 
-  const mesesRestantes = calcularMesesRestantes(meta.data_limite, referencia);
+  const metaAtingida = saldoAtual >= meta.valor_objetivo - TOLERANCIA_META_ATINGIDA;
 
-  const valorMensalNecessario =
-    valorRestante === 0
-      ? 0
-      : mesesRestantes > 0
-        ? valorRestante / mesesRestantes
-        : valorRestante;
+  if (!periodoCalendario || periodos.length === 0) {
+    return {
+      ...meta,
+      data_saldo: dataSaldo,
+      total_aportado: arredondarMoeda(totalAportado),
+      total_retirado: arredondarMoeda(totalRetirado),
+      saldo_atual: arredondarMoeda(saldoAtual),
+      rendimento_acumulado: rendimentoAcumulado,
+      valor_restante: metaAtingida ? 0 : valorRestante,
+      progresso_percentual: arredondarMoeda(progressoPercentual),
+      total_periodos: 0,
+      periodo_atual: 0,
+      periodo_inicio: dataCriacaoMeta(meta),
+      periodo_fim: meta.data_limite,
+      valor_parcela_periodo: 0,
+      aportado_no_periodo: 0,
+      falta_no_periodo: 0,
+      falta_periodo_calendario: 0,
+      falta_proximo_periodo: false,
+    };
+  }
+
+  const valorParcelaCalendario = metaAtingida
+    ? 0
+    : arredondarMoeda(
+        calcularParcelaPeriodo(meta, movimentacoes, periodos, periodoCalendario)
+      );
+
+  const aportadoNoPeriodo = arredondarMoeda(
+    calcularAportadoNoPeriodo(movimentacoes, periodoCalendario, dataReferencia)
+  );
+
+  const faltaPeriodoCalendario = metaAtingida
+    ? 0
+    : calcularFaltaNoPeriodo(
+        meta,
+        movimentacoes,
+        periodos,
+        periodoCalendario,
+        dataReferencia
+      );
+
+  const periodoCalendarioPago =
+    !metaAtingida && faltaPeriodoCalendario <= TOLERANCIA_PARCELA;
+
+  const proximoPeriodo = periodoCalendarioPago
+    ? periodos[periodoCalendario.indice] ?? null
+    : null;
+
+  const faltaNoPeriodo = metaAtingida
+    ? 0
+    : proximoPeriodo
+      ? calcularFaltaNoPeriodo(
+          meta,
+          movimentacoes,
+          periodos,
+          proximoPeriodo,
+          dataReferencia
+        )
+      : faltaPeriodoCalendario;
+
+  const faltaProximoPeriodo = periodoCalendarioPago && proximoPeriodo !== null;
 
   return {
     ...meta,
-    total_aportado: total,
-    valor_restante: valorRestante,
-    progresso_percentual: Math.round(progressoPercentual * 100) / 100,
-    meses_restantes: mesesRestantes,
-    valor_mensal_necessario: Math.round(valorMensalNecessario * 100) / 100,
+    data_saldo: dataSaldo,
+    total_aportado: arredondarMoeda(totalAportado),
+    total_retirado: arredondarMoeda(totalRetirado),
+    saldo_atual: arredondarMoeda(saldoAtual),
+    rendimento_acumulado: rendimentoAcumulado,
+    valor_restante: metaAtingida ? 0 : valorRestante,
+    progresso_percentual: arredondarMoeda(progressoPercentual),
+    total_periodos: periodos.length,
+    periodo_atual: periodoCalendario.indice,
+    periodo_inicio: periodoCalendario.inicio,
+    periodo_fim: periodoCalendario.fim,
+    valor_parcela_periodo: valorParcelaCalendario,
+    aportado_no_periodo: aportadoNoPeriodo,
+    falta_no_periodo: faltaNoPeriodo,
+    falta_periodo_calendario: faltaPeriodoCalendario,
+    falta_proximo_periodo: faltaProximoPeriodo,
   };
 }

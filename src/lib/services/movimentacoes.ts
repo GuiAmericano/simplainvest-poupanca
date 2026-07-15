@@ -1,46 +1,53 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { mapMovimentacao, parseNumber } from "@/lib/utils/parse";
-import type { Movimentacao } from "@/types/database";
+import type { Movimentacao, TipoMovimentacao } from "@/types/database";
+
+export async function listMovimentacoesByMetaIds(
+  metaIds: string[]
+): Promise<Record<string, Movimentacao[]>> {
+  const resultado: Record<string, Movimentacao[]> = {};
+
+  for (const id of metaIds) {
+    resultado[id] = [];
+  }
+
+  if (metaIds.length === 0) return resultado;
+
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase
+    .from("movimentacoes")
+    .select("*")
+    .in("meta_id", metaIds)
+    .order("data", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  for (const row of data ?? []) {
+    const movimentacao = mapMovimentacao(row);
+    const lista = resultado[movimentacao.meta_id] ?? [];
+    lista.push(movimentacao);
+    resultado[movimentacao.meta_id] = lista;
+  }
+
+  return resultado;
+}
 
 export async function getTotalAportadoByMeta(metaId: string): Promise<number> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
     .from("movimentacoes")
-    .select("valor")
+    .select("valor, tipo")
     .eq("meta_id", metaId);
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).reduce((sum, row) => sum + parseNumber(row.valor), 0);
-}
-
-export async function getTotaisAportadosPorMetas(
-  metaIds: string[]
-): Promise<Record<string, number>> {
-  if (metaIds.length === 0) return {};
-
-  const supabase = createServerClient();
-
-  const { data, error } = await supabase
-    .from("movimentacoes")
-    .select("meta_id, valor")
-    .in("meta_id", metaIds);
-
-  if (error) throw new Error(error.message);
-
-  const totais: Record<string, number> = {};
-
-  for (const id of metaIds) {
-    totais[id] = 0;
-  }
-
-  for (const row of data ?? []) {
-    const metaId = String(row.meta_id);
-    totais[metaId] = (totais[metaId] ?? 0) + parseNumber(row.valor);
-  }
-
-  return totais;
+  return (data ?? []).reduce((sum, row) => {
+    const valor = parseNumber(row.valor);
+    return row.tipo === "retirada" ? sum - valor : sum + valor;
+  }, 0);
 }
 
 export async function listMovimentacoesByMeta(
@@ -79,6 +86,7 @@ export async function getMovimentacaoById(
 export async function createMovimentacao(input: {
   meta_id: string;
   valor: number;
+  tipo: TipoMovimentacao;
   descricao: string | null;
   data: string;
 }): Promise<Movimentacao> {
